@@ -1,0 +1,380 @@
+<head>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>This is my site about games on python</h1>
+    <p>i am mostly using library Tkinter</p>
+    This is a city simulator - black squares are cars, and white are mans.
+    When an accident happen both affected are dying or goes to the prison, and a few new cars and mans are spawning(they're also spawning when someone reaching the end of the city)
+    <pre><b>
+        from tkinter import *
+        from random import randint as rt
+        root=Tk()
+        root.geometry('1200x700')
+        W, H = 1100, 600
+        c=Canvas(root,width=W,height=H, bg = 'blue')
+        c.place(x=50, y=50)
+        c.create_rectangle(W//3 - 25*2, 0, W//3 + 25*2, H, fill = "grey")
+        c.create_rectangle(W//3*2 - 25*2, 0, W//3*2 + 25*2, H, fill = "grey")
+        c.create_rectangle(0, H//3 - 25*2, W, H//3 + 25*2, fill = "grey")
+        c.create_rectangle(0, H//3*2 - 25*2, W, H//3*2 + 25*2, fill = "grey")
+
+        class Main:
+            def __init__(self):
+                pass
+        The = Main()
+
+        cars = []
+        class Car:
+            def __init__(self):
+                self.r = 25
+                self.stop = False
+                a = rt(0, 1)
+                if a:
+                    self.x = rt(W//3 - self.r, W//3 + self.r) + rt(0, 1) * W//3
+                    self.y = rt(self.r, self.r*2)
+                    self.vy = rt(5, 7)
+                    self.vx = 0
+                else:
+                    self.y = rt(H//3 - self.r, H//3 + self.r) + rt(0, 1) * H//3
+                    self.x = rt(self.r, self.r*2)
+                    self.vx = rt(5, 7)
+                    self.vy = 0
+                self.repr = c.create_rectangle(self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r,
+                                            fill="black")
+                cars.append(self)
+            def mytick(self):
+                if not (self.stop):
+                    c.move(self.repr, self.vx, self.vy)
+                    self.x += self.vx
+                    self.y += self.vy
+                    if self.x <= -self.r * 2 or self.y <= -self.r * 2 or self.y >= H + self.r * 2 or self.x >= W + self.r * 2:
+                        cars.remove(self)
+                        Car()
+                elif self.stop and perekrestok(self.x, self.y, self.r):
+                    c.move(self.repr, -self.vx, -self.vy)
+                    self.x -= self.vx
+                    self.y -= self.vy
+                self.stop = False
+        for _ in range(2):
+            Car()
+
+        mans = []
+        class Man:
+            def __init__(self):
+                self.x, self.y, self.r = rt(50, W-50), rt(50, H-50), 10
+                self.vx, self.vy = rt(2, 3), rt(2, 3)
+                self.repr = self.repr = c.create_rectangle(self.x - self.r, self.y - self.r, self.x + self.r,
+                                                        self.y + self.r, fill="white")
+                mans.append(self)
+            def mytick(self):
+                c.move(self.repr, self.vx, self.vy)
+                self.x += self.vx
+                self.y += self.vy
+                if self.x <= -self.r * 2 or self.y <= -self.r * 2 or self.y >= H + self.r * 2 or self.x >= W + self.r * 2:
+                    mans.remove(self)
+                    Man()
+        for _ in range(5):
+            Man()
+
+        def perekrestok(x, y, r):
+            if (x-r < W//3 + 25*2 and y+r > W//3 - 25*2) or (x-r < (W//3)*2 + 25*2 and y+r > (W//3)*2 - 25*2):
+                return False
+            return True
+
+        def key(event):
+            if event.keycode == 81:
+                root.destroy()
+
+        def tick():
+            for i in cars:
+                i.mytick()
+                for j in cars:
+                    if i.x - j.x <= (i.r + j.r) * 2 and j.x - i.x <= (i.r + j.r) * 2 and i.y - j.y <= (i.r + j.r) * 2 and j.y - i.y <= (i.r + j.r) * 2 and not (i is j):
+                        first = i
+                        second = j
+                        for check in cars:
+                            if check == i:
+                                first = i
+                                second = j
+                                break
+                            if check == j:
+                                first = j
+                                second = i
+                                break
+                        first.stop = False
+                        second.stop = True
+                    if i.x - j.x <= (i.r + j.r) and j.x - i.x <= (i.r + j.r) and i.y - j.y <= (
+                            i.r + j.r) and j.y - i.y <= (i.r + j.r) and not (i is j):
+                        c.move(i.repr, 1000, 1000)
+                        i.x += 1000
+                        i.y += 1000
+                        c.move(j.repr, 1000, 1000)
+                        j.x += 1000
+                        j.y += 1000
+                        cars.remove(i)
+                        cars.remove(j)
+                        Car()
+                        Car()
+                for j in mans:
+                    if i.x - j.x <= (i.r + j.r) * 2 and j.x - i.x <= (i.r + j.r) * 2 and i.y - j.y <= (
+                            i.r + j.r) * 2 and j.y - i.y <= (i.r + j.r) * 2 and not (i is j):
+                        i.stop = True
+                    if i.x - j.x <= (i.r + j.r) and j.x - i.x <= (i.r + j.r) and i.y - j.y <= (
+                            i.r + j.r) and j.y - i.y <= (i.r + j.r) and not (i is j):
+                        c.move(i.repr, 1000, 1000)
+                        i.x += 1000
+                        i.y += 1000
+                        c.move(j.repr, 1000, 1000)
+                        j.x += 1000
+                        j.y += 1000
+                        cars.remove(i)
+                        mans.remove(j)
+                        Car()
+                        Man()
+            for i in mans:
+                i.mytick()
+            c.after(10, tick)
+
+        root.title('BURUNDUK')
+        root.configure(background='green')
+        root.bind('<Key>', key)
+        tick()
+        root.mainloop()
+    </b>
+    </pre>
+    <a href = "1.py" download target="_blank">You can donwload this code using this link<br></a>
+    this is another nice programm, that is making 3D animation(rolling cubes) in 2D tkinter
+    <pre><b>
+        from tkinter import *
+        from random import randint as rt
+        from math import *
+
+        root = Tk()
+        W, H = 1366, 768
+        cnv = Canvas(root, width=W, height=H)
+        cnv.pack()
+
+
+        class Main:
+            def __init__(self):
+                self.pause = False
+
+        The = Main()
+
+        def key(event):
+            if event.keycode == 32:
+                if The.pause:
+                    The.pause = False
+                else:
+                    The.pause = True
+
+
+        rectangles = []
+
+
+        class Rectangle:
+            def __init__(self):
+                r = rt(5, 200)
+                self.x1, self.y1, self.z1 = -r, -r, r
+                self.x2, self.y2, self.z2 = -r, r, r
+                self.x3, self.y3, self.z3 = r, r, r
+                self.x4, self.y4, self.z4 = r, -r, r
+
+                self.x5, self.y5, self.z5 = -r, -r, -r
+                self.x6, self.y6, self.z6 = -r, r, -r
+                self.x7, self.y7, self.z7 = r, r, -r
+                self.x8, self.y8, self.z8 = r, -r, -r
+
+                self.spawnx = rt(0, W)
+                self.spawny = rt(0, H)
+
+                self.a = radians(rt(4, 10))
+
+                rectangles.append(self)
+
+
+        for _ in range(25):
+            Rectangle()
+
+
+        def animate():
+
+            if not The.pause:
+
+                cnv.delete("all")
+
+                for i in rectangles:
+
+                    i.x1, i.y1 = povorot(i.x1, i.y1, i.a)
+                    i.x1, i.z1 = povorot(i.x1, i.z1, i.a)
+                    i.y1, i.z1 = povorot(i.y1, i.z1, i.a)
+
+                    i.x2, i.y2 = povorot(i.x2, i.y2, i.a)
+                    i.x2, i.z2 = povorot(i.x2, i.z2, i.a)
+                    i.y2, i.z2 = povorot(i.y2, i.z2, i.a)
+
+                    i.x3, i.y3 = povorot(i.x3, i.y3, i.a)
+                    i.x3, i.z3 = povorot(i.x3, i.z3, i.a)
+                    i.y3, i.z3 = povorot(i.y3, i.z3, i.a)
+
+                    i.x4, i.y4 = povorot(i.x4, i.y4, i.a)
+                    i.x4, i.z4 = povorot(i.x4, i.z4, i.a)
+                    i.y4, i.z4 = povorot(i.y4, i.z4, i.a)
+
+                    i.x5, i.y5 = povorot(i.x5, i.y5, i.a)
+                    i.x5, i.z5 = povorot(i.x5, i.z5, i.a)
+                    i.y5, i.z5 = povorot(i.y5, i.z5, i.a)
+
+                    i.x6, i.y6 = povorot(i.x6, i.y6, i.a)
+                    i.x6, i.z6 = povorot(i.x6, i.z6, i.a)
+                    i.y6, i.z6 = povorot(i.y6, i.z6, i.a)
+
+                    i.x7, i.y7 = povorot(i.x7, i.y7, i.a)
+                    i.x7, i.z7 = povorot(i.x7, i.z7, i.a)
+                    i.y7, i.z7 = povorot(i.y7, i.z7, i.a)
+
+                    i.x8, i.y8 = povorot(i.x8, i.y8, i.a)
+                    i.x8, i.z8 = povorot(i.x8, i.z8, i.a)
+                    i.y8, i.z8 = povorot(i.y8, i.z8, i.a)
+
+                    cnv.create_polygon(i.spawnx + i.x1, i.spawny + i.y1, i.spawnx + i.x2, i.spawny + i.y2,
+                                    i.spawnx + i.x3, i.spawny + i.y3,i.spawnx + i.x4, i.spawny + i.y4,
+                                    i.spawnx + i.x1, i.spawny + i.y1, fill="red")
+
+                    cnv.create_polygon(i.spawnx + i.x5, i.spawny + i.y5, i.spawnx + i.x6, i.spawny + i.y6,
+                                    i.spawnx + i.x7, i.spawny + i.y7,i.spawnx + i.x8, i.spawny + i.y8,
+                                    i.spawnx + i.x5, i.spawny + i.y5, fill="red")
+
+                    cnv.create_polygon(i.spawnx + i.x1, i.spawny + i.y1, i.spawnx + i.x2, i.spawny + i.y2,
+                                    i.spawnx + i.x6, i.spawny + i.y6, i.spawnx + i.x5, i.spawny + i.y5,
+                                    i.spawnx + i.x1, i.spawny + i.y1, fill="red")
+
+                    cnv.create_polygon(i.spawnx + i.x3, i.spawny + i.y3, i.spawnx + i.x4, i.spawny + i.y4,
+                                    i.spawnx + i.x8, i.spawny + i.y8, i.spawnx + i.x7, i.spawny + i.y7,
+                                    i.spawnx + i.x3, i.spawny + i.y3, fill="red")
+
+                    cnv.create_polygon(i.spawnx + i.x2, i.spawny + i.y2, i.spawnx + i.x3, i.spawny + i.y3,
+                                    i.spawnx + i.x7, i.spawny + i.y7, i.spawnx + i.x6, i.spawny + i.y6,
+                                    i.spawnx + i.x2, i.spawny + i.y2, fill="red")
+
+                    cnv.create_line(i.spawnx + i.x1, i.spawny + i.y1, i.spawnx + i.x2, i.spawny + i.y2)
+                    cnv.create_line(i.spawnx + i.x2, i.spawny + i.y2, i.spawnx + i.x3, i.spawny + i.y3)
+                    cnv.create_line(i.spawnx + i.x3, i.spawny + i.y3, i.spawnx + i.x4, i.spawny + i.y4)
+                    cnv.create_line(i.spawnx + i.x4, i.spawny + i.y4, i.spawnx + i.x1, i.spawny + i.y1)
+
+                    cnv.create_line(i.spawnx + i.x5, i.spawny + i.y5, i.spawnx + i.x6, i.spawny + i.y6)
+                    cnv.create_line(i.spawnx + i.x6, i.spawny + i.y6, i.spawnx + i.x7, i.spawny + i.y7)
+                    cnv.create_line(i.spawnx + i.x7, i.spawny + i.y7, i.spawnx + i.x8, i.spawny + i.y8)
+                    cnv.create_line(i.spawnx + i.x8, i.spawny + i.y8, i.spawnx + i.x5, i.spawny + i.y5)
+
+                    cnv.create_line(i.spawnx + i.x1, i.spawny + i.y1, i.spawnx + i.x5, i.spawny + i.y5)
+                    cnv.create_line(i.spawnx + i.x2, i.spawny + i.y2, i.spawnx + i.x6, i.spawny + i.y6)
+                    cnv.create_line(i.spawnx + i.x3, i.spawny + i.y3, i.spawnx + i.x7, i.spawny + i.y7)
+                    cnv.create_line(i.spawnx + i.x4, i.spawny + i.y4, i.spawnx + i.x8, i.spawny + i.y8)
+
+            cnv.after(50, animate)
+
+        def povorot(x, y, a):
+            return x * cos(a) - y * sin(a), x * sin(a) + y * cos(a)
+
+        animate()
+        root.bind('<Key>', key)
+
+        mainloop()
+    </b></pre>
+    <a href = "data:text/plain;charset=UTF-8,2.py" download = 'second-code.py'>You can donwload this too<br></a>
+    and here is another city simulator, without mans
+    <pre><b>
+        from tkinter import *
+        from random import randint as rt
+        root=Tk()
+        root.geometry('1200x700')
+        W, H = 1100, 600
+        c=Canvas(root,width=W,height=H, bg = 'blue')
+        c.place(x=50, y=50)
+        c.create_rectangle(W//3 - 25*2, 0, W//3 + 25*2, H, fill = "grey")
+        c.create_rectangle(W//3*2 - 25*2, 0, W//3*2 + 25*2, H, fill = "grey")
+        c.create_rectangle(0, H//3 - 25*2, W, H//3 + 25*2, fill = "grey")
+        c.create_rectangle(0, H//3*2 - 25*2, W, H//3*2 + 25*2, fill = "grey")
+
+        class Main:
+            def __init__(self):
+                pass
+        The = Main()
+
+        cars = []
+        class Car:
+            def __init__(self):
+                self.r = 25
+                self.stop = False
+                a = rt(0, 1)
+                if a:
+                    self.x = rt(W//3 - self.r, W//3 + self.r) + rt(0,1) * W//3
+                    self.y = 0
+                    self.vy = rt(5, 7)
+                    self.vx = 0
+                else:
+                    self.y = rt(H//3 - self.r, H//3 + self.r) + rt(0,1) * H//3
+                    self.x = 0
+                    self.vx = rt(5, 7)
+                    self.vy = 0
+                self.repr = c.create_rectangle(self.x - self.r, self.y - self.r, self.x + self.r, self.y + self.r,
+                                            fill="black")
+                cars.append(self)
+            def mytick(self):
+                if not (self.stop):
+                    c.move(self.repr, self.vx, self.vy)
+                    self.x += self.vx
+                    self.y += self.vy
+                    if self.x <= 0:
+                        self.vx *= -1
+                    if self.x <= -self.r * 2:
+                        cars.remove(self)
+                        Car()
+                    if self.x >= W + self.r * 2:
+                        cars.remove(self)
+                        Car()
+                    if self.y <= -self.r * 2 or self.y >= H + self.r * 2:
+                        cars.remove(self)
+                        Car()
+                elif self.stop:
+                    c.move(self.repr, -self.vx, -self.vy)
+                    self.x -= self.vx
+                    self.y -= self.vy
+                self.stop = False
+        for _ in range(5):
+            Car()
+
+        def key(event):
+            if event.keycode == 81:
+                root.destroy()
+
+        def tick():
+            for i in cars:
+                i.mytick()
+                for j in cars:
+                    if i.x - j.x <= (i.r + j.r) * 2 and j.x - i.x <= (i.r + j.r) * 2 and i.y - j.y <= (i.r + j.r) * 2 and j.y - i.y <= (i.r + j.r) * 2 and not (i is j):
+                        first = i
+                        second = j
+                        for check in cars:
+                            if check == i:
+                                first = i
+                                second = j
+                                break
+                            if check == j:
+                                first = j
+                                second = i
+                                break
+                        first.stop = False
+                        second.stop = True
+            c.after(10, tick)
+
+        root.title('BURUNDUK')
+        root.configure(background='green')
+        root.bind('<Key>', key)
+        tick()
+        root.mainloop()
+    </b></pre>
+    <a href = "data:text/plain;charset=UTF-8,3.py" download = 'third-code.py'>You also can donwload this too<br></a>
+</body>
